@@ -1,5 +1,6 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { api } from '../api';
+import ModelSelectionModal from './ModelSelectionModal';
 import './CouncilConfigTab.css';
 
 function CouncilConfigTab() {
@@ -10,8 +11,6 @@ function CouncilConfigTab() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [modelFilter, setModelFilter] = useState('all'); // 'all', 'free', 'paid'
   const [showModelSelector, setShowModelSelector] = useState(false);
 
   useEffect(() => {
@@ -30,48 +29,17 @@ function CouncilConfigTab() {
       setCouncilModels(configData.council_models || []);
       setChairmanModel(configData.chairman_model || '');
     } catch (err) {
-      console.error('Failed to load config:', err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredModels = useMemo(() => {
-    let filtered = models;
-
-    // Filter by free/paid
-    if (modelFilter === 'free') {
-      filtered = filtered.filter(m => m.is_free);
-    } else if (modelFilter === 'paid') {
-      filtered = filtered.filter(m => !m.is_free);
-    }
-
-    // Filter by search query
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(m =>
-        m.id.toLowerCase().includes(query) ||
-        m.name.toLowerCase().includes(query)
-      );
-    }
-
-    // Sort: selected first, then alphabetically
-    return filtered.sort((a, b) => {
-      const aSelected = councilModels.includes(a.id);
-      const bSelected = councilModels.includes(b.id);
-      if (aSelected && !bSelected) return -1;
-      if (!aSelected && bSelected) return 1;
-      return a.name.localeCompare(b.name);
-    });
-  }, [models, modelFilter, searchQuery, councilModels]);
-
   const handleAddModel = (modelId) => {
     if (!councilModels.includes(modelId)) {
       setCouncilModels([...councilModels, modelId]);
     }
     setShowModelSelector(false);
-    setSearchQuery('');
   };
 
   const handleRemoveModel = (modelId) => {
@@ -84,11 +52,11 @@ function CouncilConfigTab() {
 
   const handleSave = async () => {
     if (councilModels.length === 0) {
-      setError('Please select at least one council model');
+      setError('Wybierz przynajmniej jeden model rady');
       return;
     }
     if (!chairmanModel) {
-      setError('Please select a chairman model');
+      setError('Wybierz model przewodniczącego');
       return;
     }
 
@@ -98,10 +66,9 @@ function CouncilConfigTab() {
 
     try {
       await api.updateCouncilConfig(councilModels, chairmanModel);
-      setSuccessMessage('Configuration saved successfully!');
+      setSuccessMessage('Konfiguracja zapisana pomyślnie!');
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err) {
-      console.error('Failed to save config:', err);
       setError(err.message);
     } finally {
       setSaving(false);
@@ -113,17 +80,35 @@ function CouncilConfigTab() {
   };
 
   const formatPrice = (price) => {
-    if (!price || price === '0') return 'Free';
+    if (!price || price === '0') return 'Darmowy';
     const num = parseFloat(price);
-    if (num < 0.0001) return `$${(num * 1000000).toFixed(2)}/1M`;
-    return `$${num.toFixed(4)}/1K`;
+    const pricePerMillion = num * 1000000;
+
+    // If less than 1 or has decimal parts, show decimals
+    if (pricePerMillion < 1 || pricePerMillion % 1 !== 0) {
+      return `$${pricePerMillion.toFixed(2)}`;
+    }
+
+    return `$${Math.round(pricePerMillion)}`;
+  };
+
+  const formatPricing = (pricing) => {
+    if (!pricing) return 'Darmowy';
+    const promptPrice = pricing.prompt;
+    const completionPrice = pricing.completion;
+
+    if ((!promptPrice || promptPrice === '0') && (!completionPrice || completionPrice === '0')) {
+      return 'Darmowy';
+    }
+
+    return `${formatPrice(promptPrice)} we / ${formatPrice(completionPrice)} wy`;
   };
 
   if (loading) {
     return (
       <div className="settings-loading">
         <div className="spinner" />
-        <span>Loading configuration...</span>
+        <span>Ładowanie konfiguracji...</span>
       </div>
     );
   }
@@ -144,23 +129,23 @@ function CouncilConfigTab() {
 
       {/* Council Models Section */}
       <div className="settings-section">
-        <h3>Council Models</h3>
-        <p>Select the models that will participate in the expert panel discussion.</p>
+        <h3>Modele Rady</h3>
+        <p>Wybierz modele, które będą uczestniczyć w dyskusji panelu ekspertów.</p>
 
         <div className="selected-models">
           {councilModels.length === 0 ? (
-            <div className="no-models">No models selected</div>
+            <div className="no-models">Nie wybrano modeli</div>
           ) : (
             councilModels.map(modelId => {
               const model = getModelById(modelId);
               return (
                 <div key={modelId} className="selected-model-chip">
                   <span className="model-name">{model?.name || modelId}</span>
-                  {model?.is_free && <span className="free-badge">Free</span>}
+                  {model?.is_free && <span className="free-badge">Darmowy</span>}
                   <button
                     className="remove-model"
                     onClick={() => handleRemoveModel(modelId)}
-                    title="Remove model"
+                    title="Usuń model"
                   >
                     ×
                   </button>
@@ -172,96 +157,26 @@ function CouncilConfigTab() {
 
         <button
           className="add-model-button"
-          onClick={() => setShowModelSelector(!showModelSelector)}
+          onClick={() => setShowModelSelector(true)}
         >
-          {showModelSelector ? 'Close' : '+ Add Model'}
+          + Dodaj Model
         </button>
-
-        {showModelSelector && (
-          <div className="model-selector">
-            <div className="selector-header">
-              <input
-                type="text"
-                placeholder="Search models..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="model-search"
-              />
-              <div className="filter-buttons">
-                <button
-                  className={`filter-btn ${modelFilter === 'all' ? 'active' : ''}`}
-                  onClick={() => setModelFilter('all')}
-                >
-                  All
-                </button>
-                <button
-                  className={`filter-btn ${modelFilter === 'free' ? 'active' : ''}`}
-                  onClick={() => setModelFilter('free')}
-                >
-                  Free
-                </button>
-                <button
-                  className={`filter-btn ${modelFilter === 'paid' ? 'active' : ''}`}
-                  onClick={() => setModelFilter('paid')}
-                >
-                  Paid
-                </button>
-              </div>
-            </div>
-
-            <div className="model-list">
-              {filteredModels.map(model => {
-                const isSelected = councilModels.includes(model.id);
-                return (
-                  <div
-                    key={model.id}
-                    className={`model-item ${isSelected ? 'selected' : ''}`}
-                    onClick={() => !isSelected && handleAddModel(model.id)}
-                  >
-                    <div className="model-info">
-                      <span className="model-name">{model.name}</span>
-                      <span className="model-id">{model.id}</span>
-                    </div>
-                    <div className="model-meta">
-                      {model.is_free ? (
-                        <span className="free-badge">Free</span>
-                      ) : (
-                        <span className="price-badge">
-                          {formatPrice(model.pricing?.prompt)}
-                        </span>
-                      )}
-                      {model.context_length && (
-                        <span className="context-badge">
-                          {Math.round(model.context_length / 1000)}K ctx
-                        </span>
-                      )}
-                    </div>
-                    {isSelected && <span className="check-mark">✓</span>}
-                  </div>
-                );
-              })}
-              {filteredModels.length === 0 && (
-                <div className="no-models">No models found</div>
-              )}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Chairman Model Section */}
       <div className="settings-section">
-        <h3>Chairman Model</h3>
-        <p>Select the model that will synthesize the final response from all council members.</p>
+        <h3>Model Przewodniczącego</h3>
+        <p>Wybierz model, który zsyntetyzuje ostateczną odpowiedź ze wszystkich członków rady.</p>
 
         <select
           className="chairman-select"
           value={chairmanModel}
           onChange={(e) => setChairmanModel(e.target.value)}
         >
-          <option value="">Select a chairman model...</option>
+          <option value="">Wybierz model przewodniczącego...</option>
           {models.map(model => (
             <option key={model.id} value={model.id}>
-              {model.name} {model.is_free ? '(Free)' : `(${formatPrice(model.pricing?.prompt)})`}
+              {model.name} {model.is_free ? '(Darmowy)' : `(${formatPricing(model.pricing)})`}
             </option>
           ))}
         </select>
@@ -274,9 +189,17 @@ function CouncilConfigTab() {
           onClick={handleSave}
           disabled={saving}
         >
-          {saving ? 'Saving...' : 'Save Configuration'}
+          {saving ? 'Zapisywanie...' : 'Zapisz Konfigurację'}
         </button>
       </div>
+
+      <ModelSelectionModal
+        isOpen={showModelSelector}
+        models={models}
+        councilModels={councilModels}
+        onSelect={handleAddModel}
+        onClose={() => setShowModelSelector(false)}
+      />
     </div>
   );
 }

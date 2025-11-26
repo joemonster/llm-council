@@ -19,7 +19,6 @@ function UserSettingsTab() {
       const data = await api.getOpenRouterCredits();
       setCredits(data);
     } catch (error) {
-      console.error('Failed to load credits:', error);
       setCreditsError(error.message);
     } finally {
       setCreditsLoading(false);
@@ -46,39 +45,39 @@ function UserSettingsTab() {
     <div className="user-settings-tab">
       {/* User Info Section */}
       <div className="settings-section">
-        <h3>Account Information</h3>
+        <h3>Informacje o koncie</h3>
         <div className="settings-row">
-          <span className="settings-label">Username</span>
+          <span className="settings-label">Nazwa użytkownika</span>
           <span className="settings-value">{user?.username}</span>
         </div>
         <div className="settings-row">
-          <span className="settings-label">Display Name</span>
+          <span className="settings-label">Wyświetlana nazwa</span>
           <span className="settings-value">{user?.display_name || user?.username}</span>
         </div>
         <div className="settings-row">
-          <span className="settings-label">Member Since</span>
+          <span className="settings-label">Członek od</span>
           <span className="settings-value">{formatDate(user?.created_at)}</span>
         </div>
         <div className="settings-row">
-          <span className="settings-label">Last Login</span>
+          <span className="settings-label">Ostatnie logowanie</span>
           <span className="settings-value">{formatDate(user?.last_login)}</span>
         </div>
       </div>
 
       {/* Credits Section */}
       <div className="settings-section">
-        <h3>OpenRouter Credits</h3>
+        <h3>Kredyty OpenRouter</h3>
 
         {creditsLoading && (
           <div className="settings-loading">
             <div className="spinner" />
-            <span>Loading credits...</span>
+            <span>Ładowanie kredytów...</span>
           </div>
         )}
 
         {creditsError && (
           <div className="settings-error">
-            Failed to load credits: {creditsError}
+            Nie udało się załadować kredytów: {creditsError}
             <button
               onClick={loadCredits}
               style={{
@@ -91,7 +90,7 @@ function UserSettingsTab() {
                 color: '#dc2626'
               }}
             >
-              Retry
+              Ponów
             </button>
           </div>
         )}
@@ -101,7 +100,7 @@ function UserSettingsTab() {
             <div className="credits-amount">
               {formatCredits(credits.remaining)}
               <span style={{ fontSize: 14, fontWeight: 400, color: '#666', marginLeft: 8 }}>
-                remaining
+                pozostało
               </span>
             </div>
 
@@ -113,9 +112,9 @@ function UserSettingsTab() {
             </div>
 
             <div className="credits-details">
-              Used: {formatCredits(credits.total_usage)} of {formatCredits(credits.total_credits)}
+              Wykorzystano: {formatCredits(credits.total_usage)} z {formatCredits(credits.total_credits)}
               {credits.percentage_used > 0 && (
-                <span> ({credits.percentage_used.toFixed(1)}% used)</span>
+                <span> ({credits.percentage_used.toFixed(1)}% użyte)</span>
               )}
             </div>
 
@@ -125,7 +124,7 @@ function UserSettingsTab() {
               rel="noopener noreferrer"
               className="credits-link"
             >
-              Add more credits on OpenRouter
+              Dodaj więcej kredytów w OpenRouter
             </a>
           </div>
         )}

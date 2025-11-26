@@ -16,7 +16,7 @@ function SettingsModal({ onClose }) {
     <div className="modal-backdrop" onClick={handleBackdropClick}>
       <div className="modal-container">
         <div className="modal-header">
-          <h2>Settings</h2>
+          <h2>Ustawienia</h2>
           <button className="modal-close" onClick={onClose}>
             <svg
               width="20"
@@ -39,13 +39,13 @@ function SettingsModal({ onClose }) {
             className={`modal-tab ${activeTab === 'user' ? 'active' : ''}`}
             onClick={() => setActiveTab('user')}
           >
-            User
+            Użytkownik
           </button>
           <button
             className={`modal-tab ${activeTab === 'council' ? 'active' : ''}`}
             onClick={() => setActiveTab('council')}
           >
-            Expert Panel
+            Panel Ekspertów
           </button>
         </div>
 

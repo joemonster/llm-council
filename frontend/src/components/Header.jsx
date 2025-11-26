@@ -5,7 +5,6 @@ function Header({ onOpenSettings }) {
   const { user, logout } = useAuth();
 
   const handleForceRelogin = () => {
-    console.log('[FORCE] Forcing re-login by clearing all storage');
     localStorage.clear();
     sessionStorage.clear();
     window.location.reload();

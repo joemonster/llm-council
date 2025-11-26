@@ -1,13 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import EditRoundedIcon from '@mui/icons-material/EditRounded';
-import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
 import Stage1 from './Stage1';
 import Stage2 from './Stage2';
 import Stage3 from './Stage3';
 import LoadingSpinner from './LoadingSpinner';
 import SkeletonLoader from './SkeletonLoader';
-import ConfirmModal from './ConfirmModal';
-import RenameModal from './RenameModal';
 import UserMessage from './UserMessage';
 import { api } from '../api';
 import './ChatInterface.css';
@@ -15,19 +11,13 @@ import './ChatInterface.css';
 export default function ChatInterface({
   conversation,
   onSendMessage,
-  onDeleteConversation,
-  onRenameConversation,
   isLoading,
   isLoadingConversation = false,
   messageStartTime = null,
 }) {
   const [input, setInput] = useState('');
-  const [showMenu, setShowMenu] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showRenameModal, setShowRenameModal] = useState(false);
   const [config, setConfig] = useState(null);
   const messagesEndRef = useRef(null);
-  const menuRef = useRef(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -44,28 +34,11 @@ export default function ChatInterface({
         const cfg = await api.getConfig();
         setConfig(cfg);
       } catch (error) {
-        console.error('Failed to load config:', error);
+        // Failed to load config
       }
     };
     loadConfig();
   }, []);
-
-  // Close menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setShowMenu(false);
-      }
-    };
-
-    if (showMenu) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showMenu]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -80,39 +53,6 @@ export default function ChatInterface({
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
-    }
-  };
-
-  const handleRenameClick = () => {
-    setShowMenu(false);
-    setShowRenameModal(true);
-  };
-
-  const handleDeleteClick = () => {
-    setShowMenu(false);
-    setShowDeleteModal(true);
-  };
-
-  const handleConfirmRename = async (newTitle) => {
-    setShowRenameModal(false);
-    if (!conversation) return;
-
-    try {
-      await api.updateConversationTitle(conversation.id, newTitle);
-      // Update the conversation list via parent callback
-      if (onRenameConversation) {
-        onRenameConversation(conversation.id, newTitle);
-      }
-    } catch (error) {
-      console.error('Failed to rename conversation:', error);
-      alert('Nie udało się zmienić nazwy rozmowy. Spróbuj ponownie.');
-    }
-  };
-
-  const handleConfirmDelete = async () => {
-    setShowDeleteModal(false);
-    if (onDeleteConversation && conversation) {
-      await onDeleteConversation(conversation.id);
     }
   };
 
@@ -144,27 +84,6 @@ export default function ChatInterface({
       {conversation && conversation.messages && (
         <div className="chat-header">
           <h2 className="chat-title">{conversation.title || 'Nowa rozmowa'}</h2>
-          <div className="chat-menu" ref={menuRef}>
-            <button
-              className="menu-button"
-              onClick={() => setShowMenu(!showMenu)}
-              title="Więcej opcji"
-            >
-              ⋮
-            </button>
-            {showMenu && (
-              <div className="menu-dropdown">
-                <button className="menu-item" onClick={handleRenameClick}>
-                  <EditRoundedIcon fontSize="small" />
-                  <span>Zmień nazwę</span>
-                </button>
-                <button className="menu-item menu-item-delete" onClick={handleDeleteClick}>
-                  <DeleteRoundedIcon fontSize="small" />
-                  <span>Usuń</span>
-                </button>
-              </div>
-            )}
-          </div>
         </div>
       )}
 
@@ -281,21 +200,6 @@ export default function ChatInterface({
           {isLoading ? <LoadingSpinner size="small" /> : 'Wyślij'}
         </button>
       </form>
-
-      <RenameModal
-        isOpen={showRenameModal}
-        currentTitle={conversation?.title || 'Nowa rozmowa'}
-        onConfirm={handleConfirmRename}
-        onCancel={() => setShowRenameModal(false)}
-      />
-
-      <ConfirmModal
-        isOpen={showDeleteModal}
-        title="Usuń rozmowę"
-        message="Czy na pewno chcesz usunąć tę rozmowę? Ta operacja jest nieodwracalna."
-        onConfirm={handleConfirmDelete}
-        onCancel={() => setShowDeleteModal(false)}
-      />
     </div>
   );
 }

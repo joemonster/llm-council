@@ -41,7 +41,7 @@ function MainApp() {
       const convs = await api.listConversations();
       setConversations(convs);
     } catch (error) {
-      console.error('Failed to load conversations:', error);
+      // Failed to load conversations
     } finally {
       setIsLoadingConversations(false);
     }
@@ -54,7 +54,7 @@ function MainApp() {
       const conv = await api.getConversation(id);
       setCurrentConversation(conv);
     } catch (error) {
-      console.error('Failed to load conversation:', error);
+      // Failed to load conversation
     } finally {
       setIsLoadingConversation(false);
     }
@@ -70,7 +70,7 @@ function MainApp() {
       ]);
       navigate(`/c/${newConv.id}`);
     } catch (error) {
-      console.error('Failed to create conversation:', error);
+      // Failed to create conversation
     } finally {
       setIsCreatingConversation(false);
     }
@@ -80,16 +80,22 @@ function MainApp() {
     navigate(`/c/${id}`);
   };
 
-  const handleRenameConversation = (id, newTitle) => {
-    setConversations((prev) =>
-      prev.map((conv) =>
-        conv.id === id ? { ...conv, title: newTitle } : conv
-      )
-    );
+  const handleRenameConversation = async (id, newTitle) => {
+    try {
+      await api.updateConversationTitle(id, newTitle);
 
-    // Update current conversation if it's the one being renamed
-    if (currentConversation?.id === id) {
-      setCurrentConversation((prev) => ({ ...prev, title: newTitle }));
+      setConversations((prev) =>
+        prev.map((conv) =>
+          conv.id === id ? { ...conv, title: newTitle } : conv
+        )
+      );
+
+      // Update current conversation if it's the one being renamed
+      if (currentConversation?.id === id) {
+        setCurrentConversation((prev) => ({ ...prev, title: newTitle }));
+      }
+    } catch (error) {
+      alert('Nie udało się zmienić nazwy rozmowy. Spróbuj ponownie.');
     }
   };
 
@@ -105,7 +111,6 @@ function MainApp() {
         navigate('/');
       }
     } catch (error) {
-      console.error('Failed to delete conversation:', error);
       alert('Nie udało się usunąć rozmowy. Spróbuj ponownie.');
     }
   };
@@ -147,7 +152,6 @@ function MainApp() {
       }));
 
       // Stage 1: Collect responses
-      console.log('Starting Stage 1...');
       const stage1Result = await api.runStage1(conversationId, content);
 
       const stage2StartTime = Date.now();
@@ -162,7 +166,6 @@ function MainApp() {
       });
 
       // Stage 2: Collect rankings
-      console.log('Starting Stage 2...');
       const stage2Result = await api.runStage2(
         conversationId,
         content,
@@ -182,7 +185,6 @@ function MainApp() {
       });
 
       // Stage 3: Chairman synthesis
-      console.log('Starting Stage 3...');
       const stage3Result = await api.runStage3(
         conversationId,
         content,
@@ -213,10 +215,7 @@ function MainApp() {
 
       // Reload conversations list to get updated title and message count
       loadConversations();
-
-      console.log('All stages complete!');
     } catch (error) {
-      console.error('Failed to send message:', error);
       // Remove optimistic messages on error
       setCurrentConversation((prev) => ({
         ...prev,
@@ -237,14 +236,14 @@ function MainApp() {
           currentConversationId={conversationId}
           onSelectConversation={handleSelectConversation}
           onNewConversation={handleNewConversation}
+          onRenameConversation={handleRenameConversation}
+          onDeleteConversation={handleDeleteConversation}
           isLoading={isLoadingConversations}
           isCreating={isCreatingConversation}
         />
         <ChatInterface
           conversation={currentConversation}
           onSendMessage={handleSendMessage}
-          onRenameConversation={handleRenameConversation}
-          onDeleteConversation={handleDeleteConversation}
           isLoading={isLoading}
           isLoadingConversation={isLoadingConversation}
           messageStartTime={messageStartTime}
