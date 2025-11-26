@@ -1,23 +1,36 @@
-import { useState, useEffect } from 'react';
 import './Sidebar.css';
+import SkeletonLoader from './SkeletonLoader';
+import LoadingSpinner from './LoadingSpinner';
 
 export default function Sidebar({
   conversations,
   currentConversationId,
   onSelectConversation,
   onNewConversation,
+  isLoading = false,
+  isCreating = false,
 }) {
   return (
     <div className="sidebar">
       <div className="sidebar-header">
         <h1>LLM Council</h1>
-        <button className="new-conversation-btn" onClick={onNewConversation}>
-          + New Conversation
+        <button
+          className="new-conversation-btn"
+          onClick={onNewConversation}
+          disabled={isCreating}
+        >
+          {isCreating ? (
+            <LoadingSpinner size="small" />
+          ) : (
+            '+ New Conversation'
+          )}
         </button>
       </div>
 
       <div className="conversation-list">
-        {conversations.length === 0 ? (
+        {isLoading ? (
+          <SkeletonLoader type="conversation-list" count={5} />
+        ) : conversations.length === 0 ? (
           <div className="no-conversations">No conversations yet</div>
         ) : (
           conversations.map((conv) => (

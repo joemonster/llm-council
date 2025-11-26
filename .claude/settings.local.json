@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bash:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(npm:*)",
+      "Bash(git:*)",
+      "Bash(supabase:*)",
+      "Bash(curl:*)",
+      "Bash(ls:*)",
+      "Bash(cd:*)",
+      "Bash(pwd:*)",
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep",
+      "Task",
+      "TodoWrite",
+      "WebSearch",
+      "WebFetch",
+      "BashOutput",
+      "KillShell",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nAdd Supabase backend and loading indicators\n\n- Migrate from Python/FastAPI to Supabase Edge Functions (TypeScript)\n- Split council process into separate stage endpoints to avoid timeouts\n- Add PostgreSQL storage for conversations and messages\n- Add skeleton loaders for conversation list and message loading\n- Add spinner with elapsed time timer (0.1s precision) for stage progress\n- Color-coded stage indicators (blue/orange/green)\n- Add PowerShell start script for Windows\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

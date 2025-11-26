@@ -62,44 +62,69 @@
   white-space: pre-wrap;
 }
 
-.loading-indicator {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px;
-  color: #666;
-  font-size: 14px;
-}
-
+/* Stage Loading Styles */
 .stage-loading {
   display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  margin: 12px 0;
+  background: linear-gradient(135deg, #f8f9fa 0%, #f0f4f8 100%);
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.stage-loading-header {
+  display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px;
-  margin: 12px 0;
-  background: #f9fafb;
-  border-radius: 8px;
-  border: 1px solid #e0e0e0;
-  color: #666;
+}
+
+.stage-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: #4a90e2;
+  color: white;
+  font-weight: 700;
   font-size: 14px;
-  font-style: italic;
-}
-
-.spinner {
-  width: 20px;
-  height: 20px;
-  border: 2px solid #e0e0e0;
-  border-top-color: #4a90e2;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+.stage-name {
+  font-weight: 600;
+  font-size: 15px;
+  color: #333;
 }
 
+.stage-1-loading {
+  border-left: 4px solid #4a90e2;
+}
+
+.stage-2-loading {
+  border-left: 4px solid #f5a623;
+}
+
+.stage-3-loading {
+  border-left: 4px solid #7ed321;
+}
+
+.stage-1-loading .stage-number {
+  background: #4a90e2;
+}
+
+.stage-2-loading .stage-number {
+  background: #f5a623;
+}
+
+.stage-3-loading .stage-number {
+  background: #7ed321;
+}
+
+/* Input Form */
 .input-form {
   display: flex;
   align-items: flex-end;
@@ -148,6 +173,10 @@
   transition: background 0.2s;
   white-space: nowrap;
   align-self: flex-end;
+  min-width: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .send-button:hover:not(:disabled) {
@@ -156,8 +185,15 @@
 }
 
 .send-button:disabled {
-  opacity: 0.5;
+  opacity: 0.7;
   cursor: not-allowed;
-  background: #ccc;
-  border-color: #ccc;
+}
+
+.send-button .loading-spinner-container {
+  padding: 0;
+}
+
+.send-button .spinner-ring {
+  border-color: rgba(255, 255, 255, 0.3);
+  border-top-color: white;
 }

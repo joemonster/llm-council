@@ -1,115 +1,138 @@
 /**
  * API client for the LLM Council backend.
+ * Uses Supabase Edge Functions with sequential stage calls.
  */
 
-const API_BASE = 'http://localhost:8001';
+import { supabase, functionsUrl } from './supabase';
+
+async function callFunction(functionName, body = {}) {
+  const response = await fetch(`${functionsUrl}/${functionName}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(error.error || `Failed to call ${functionName}`);
+  }
+
+  return response.json();
+}
+
+async function callFunctionGet(functionName) {
+  const response = await fetch(`${functionsUrl}/${functionName}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+    throw new Error(error.error || `Failed to call ${functionName}`);
+  }
+
+  return response.json();
+}
 
 export const api = {
   /**
    * List all conversations.
    */
   async listConversations() {
-    const response = await fetch(`${API_BASE}/api/conversations`);
-    if (!response.ok) {
-      throw new Error('Failed to list conversations');
-    }
-    return response.json();
+    return callFunctionGet('conversations');
   },
 
   /**
    * Create a new conversation.
    */
   async createConversation() {
-    const response = await fetch(`${API_BASE}/api/conversations`, {
-      method: 'POST',
+    return callFunction('conversations');
+  },
+
+  /**
+   * Get a specific conversation with all messages.
+   */
+  async getConversation(conversationId) {
+    const response = await fetch(`${functionsUrl}/conversations/${conversationId}`, {
+      method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({}),
     });
+
     if (!response.ok) {
-      throw new Error('Failed to create conversation');
+      const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+      throw new Error(error.error || 'Failed to get conversation');
     }
+
     return response.json();
   },
 
   /**
-   * Get a specific conversation.
+   * Run Stage 1: Collect individual responses from council models.
+   * @param {string} conversationId - The conversation ID
+   * @param {string} content - The user's message
+   * @returns {Promise<{stage1: Array}>}
    */
-  async getConversation(conversationId) {
-    const response = await fetch(
-      `${API_BASE}/api/conversations/${conversationId}`
-    );
-    if (!response.ok) {
-      throw new Error('Failed to get conversation');
-    }
-    return response.json();
+  async runStage1(conversationId, content) {
+    return callFunction('stage1', {
+      conversation_id: conversationId,
+      content,
+    });
   },
 
   /**
-   * Send a message in a conversation.
+   * Run Stage 2: Collect rankings from council models (anonymized peer review).
+   * @param {string} conversationId - The conversation ID
+   * @param {string} content - The user's message
+   * @param {Array} stage1 - Results from Stage 1
+   * @returns {Promise<{stage2: Array, metadata: Object}>}
+   */
+  async runStage2(conversationId, content, stage1) {
+    return callFunction('stage2', {
+      conversation_id: conversationId,
+      content,
+      stage1,
+    });
+  },
+
+  /**
+   * Run Stage 3: Chairman synthesizes final response.
+   * Also saves the complete assistant message to the database.
+   * @param {string} conversationId - The conversation ID
+   * @param {string} content - The user's message
+   * @param {Array} stage1 - Results from Stage 1
+   * @param {Array} stage2 - Results from Stage 2
+   * @param {Object} metadata - Metadata from Stage 2
+   * @returns {Promise<{stage3: Object, title: string|null}>}
+   */
+  async runStage3(conversationId, content, stage1, stage2, metadata) {
+    return callFunction('stage3', {
+      conversation_id: conversationId,
+      content,
+      stage1,
+      stage2,
+      metadata,
+    });
+  },
+
+  /**
+   * Send a message in a conversation (legacy single-call method, not used with Edge Functions).
+   * @deprecated Use runStage1, runStage2, runStage3 sequentially instead
    */
   async sendMessage(conversationId, content) {
-    const response = await fetch(
-      `${API_BASE}/api/conversations/${conversationId}/message`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ content }),
-      }
-    );
-    if (!response.ok) {
-      throw new Error('Failed to send message');
-    }
-    return response.json();
+    throw new Error('sendMessage is deprecated. Use runStage1/2/3 instead.');
   },
 
   /**
-   * Send a message and receive streaming updates.
-   * @param {string} conversationId - The conversation ID
-   * @param {string} content - The message content
-   * @param {function} onEvent - Callback function for each event: (eventType, data) => void
-   * @returns {Promise<void>}
+   * Send a message with streaming (legacy SSE method, not used with Edge Functions).
+   * @deprecated Use runStage1, runStage2, runStage3 sequentially instead
    */
   async sendMessageStream(conversationId, content, onEvent) {
-    const response = await fetch(
-      `${API_BASE}/api/conversations/${conversationId}/message/stream`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ content }),
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error('Failed to send message');
-    }
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      const chunk = decoder.decode(value);
-      const lines = chunk.split('\n');
-
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const data = line.slice(6);
-          try {
-            const event = JSON.parse(data);
-            onEvent(event.type, event);
-          } catch (e) {
-            console.error('Failed to parse SSE event:', e);
-          }
-        }
-      }
-    }
+    throw new Error('sendMessageStream is deprecated. Use runStage1/2/3 instead.');
   },
 };

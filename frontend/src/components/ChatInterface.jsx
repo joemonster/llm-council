@@ -3,12 +3,16 @@ import ReactMarkdown from 'react-markdown';
 import Stage1 from './Stage1';
 import Stage2 from './Stage2';
 import Stage3 from './Stage3';
+import LoadingSpinner from './LoadingSpinner';
+import SkeletonLoader from './SkeletonLoader';
 import './ChatInterface.css';
 
 export default function ChatInterface({
   conversation,
   onSendMessage,
   isLoading,
+  isLoadingConversation = false,
+  messageStartTime = null,
 }) {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef(null);
@@ -37,12 +41,24 @@ export default function ChatInterface({
     }
   };
 
-  if (!conversation) {
+  // No conversation selected
+  if (!conversation && !isLoadingConversation) {
     return (
       <div className="chat-interface">
         <div className="empty-state">
           <h2>Welcome to LLM Council</h2>
           <p>Create a new conversation to get started</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading conversation
+  if (isLoadingConversation) {
+    return (
+      <div className="chat-interface">
+        <div className="messages-container">
+          <SkeletonLoader type="messages" />
         </div>
       </div>
     );
@@ -74,18 +90,32 @@ export default function ChatInterface({
 
                   {/* Stage 1 */}
                   {msg.loading?.stage1 && (
-                    <div className="stage-loading">
-                      <div className="spinner"></div>
-                      <span>Running Stage 1: Collecting individual responses...</span>
+                    <div className="stage-loading stage-1-loading">
+                      <div className="stage-loading-header">
+                        <span className="stage-number">1</span>
+                        <span className="stage-name">Collecting Individual Responses</span>
+                      </div>
+                      <LoadingSpinner
+                        message="Querying 4 council models in parallel..."
+                        showTimer={true}
+                        startTime={msg.stageStartTime}
+                      />
                     </div>
                   )}
                   {msg.stage1 && <Stage1 responses={msg.stage1} />}
 
                   {/* Stage 2 */}
                   {msg.loading?.stage2 && (
-                    <div className="stage-loading">
-                      <div className="spinner"></div>
-                      <span>Running Stage 2: Peer rankings...</span>
+                    <div className="stage-loading stage-2-loading">
+                      <div className="stage-loading-header">
+                        <span className="stage-number">2</span>
+                        <span className="stage-name">Peer Rankings</span>
+                      </div>
+                      <LoadingSpinner
+                        message="Models are evaluating each other's responses..."
+                        showTimer={true}
+                        startTime={msg.stageStartTime}
+                      />
                     </div>
                   )}
                   {msg.stage2 && (
@@ -98,9 +128,16 @@ export default function ChatInterface({
 
                   {/* Stage 3 */}
                   {msg.loading?.stage3 && (
-                    <div className="stage-loading">
-                      <div className="spinner"></div>
-                      <span>Running Stage 3: Final synthesis...</span>
+                    <div className="stage-loading stage-3-loading">
+                      <div className="stage-loading-header">
+                        <span className="stage-number">3</span>
+                        <span className="stage-name">Final Synthesis</span>
+                      </div>
+                      <LoadingSpinner
+                        message="Chairman is synthesizing the final answer..."
+                        showTimer={true}
+                        startTime={msg.stageStartTime}
+                      />
                     </div>
                   )}
                   {msg.stage3 && <Stage3 finalResponse={msg.stage3} />}
@@ -110,36 +147,27 @@ export default function ChatInterface({
           ))
         )}
 
-        {isLoading && (
-          <div className="loading-indicator">
-            <div className="spinner"></div>
-            <span>Consulting the council...</span>
-          </div>
-        )}
-
         <div ref={messagesEndRef} />
       </div>
 
-      {conversation.messages.length === 0 && (
-        <form className="input-form" onSubmit={handleSubmit}>
-          <textarea
-            className="message-input"
-            placeholder="Ask your question... (Shift+Enter for new line, Enter to send)"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            disabled={isLoading}
-            rows={3}
-          />
-          <button
-            type="submit"
-            className="send-button"
-            disabled={!input.trim() || isLoading}
-          >
-            Send
-          </button>
-        </form>
-      )}
+      <form className="input-form" onSubmit={handleSubmit}>
+        <textarea
+          className="message-input"
+          placeholder="Ask your question... (Shift+Enter for new line, Enter to send)"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          disabled={isLoading}
+          rows={3}
+        />
+        <button
+          type="submit"
+          className="send-button"
+          disabled={!input.trim() || isLoading}
+        >
+          {isLoading ? <LoadingSpinner size="small" /> : 'Send'}
+        </button>
+      </form>
     </div>
   );
 }

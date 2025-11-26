@@ -1,0 +1,113 @@
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-line {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+/* Conversation List Skeleton */
+.skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+}
+
+.skeleton-item {
+  padding: 12px;
+  border-radius: 6px;
+  background: #fafafa;
+}
+
+.skeleton-title {
+  height: 16px;
+  width: 70%;
+  margin-bottom: 8px;
+}
+
+.skeleton-subtitle {
+  height: 12px;
+  width: 40%;
+}
+
+/* Messages Skeleton */
+.skeleton-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+}
+
+.skeleton-message {
+  padding: 16px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-message.skeleton-user {
+  background: #e3f2fd;
+  align-self: flex-end;
+  max-width: 60%;
+}
+
+.skeleton-message.skeleton-assistant {
+  background: #f5f5f5;
+  max-width: 80%;
+}
+
+.skeleton-text-short {
+  height: 14px;
+  width: 30%;
+}
+
+.skeleton-text-medium {
+  height: 14px;
+  width: 60%;
+}
+
+.skeleton-text-long {
+  height: 14px;
+  width: 90%;
+}
+
+/* Stage Skeleton */
+.skeleton-stage {
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 8px;
+  margin: 12px 0;
+}
+
+.skeleton-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 12px;
+}
+
+.skeleton-tab {
+  height: 32px;
+  width: 100px;
+  background: linear-gradient(90deg, #e8e8e8 25%, #e0e0e0 50%, #e8e8e8 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+.skeleton-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
