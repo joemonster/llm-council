@@ -1,0 +1,19 @@
+.toggle-message-btn {
+  margin-top: 8px;
+  padding: 4px 12px;
+  background: transparent;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  color: #4a90e2;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.toggle-message-btn:hover {
+  background: #f0f8ff;
+  border-color: #4a90e2;
+}

@@ -1,5 +1,6 @@
 // 3-stage LLM Council orchestration logic
 
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { queryModelsParallel, queryModel } from './openrouter.ts';
 import { COUNCIL_MODELS, CHAIRMAN_MODEL, TITLE_MODEL } from './config.ts';
 import type {
@@ -10,12 +11,52 @@ import type {
   CouncilMetadata,
 } from './types.ts';
 
+// Get council configuration from database or fall back to hardcoded values
+export async function getCouncilConfig(): Promise<{
+  councilModels: string[];
+  chairmanModel: string;
+}> {
+  try {
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+
+    const { data: config, error } = await supabase
+      .from('council_configs')
+      .select('council_models, chairman_model')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (config && !error) {
+      return {
+        councilModels: config.council_models,
+        chairmanModel: config.chairman_model,
+      };
+    }
+  } catch (e) {
+    console.error('Failed to load council config from database:', e);
+  }
+
+  // Fallback to hardcoded config
+  return {
+    councilModels: COUNCIL_MODELS,
+    chairmanModel: CHAIRMAN_MODEL,
+  };
+}
+
 export async function stage1CollectResponses(
-  userQuery: string
+  userQuery: string,
+  councilModels?: string[]
 ): Promise<Stage1Result[]> {
+  // Get models from parameter or config
+  const models = councilModels || (await getCouncilConfig()).councilModels;
+
   const messages = [{ role: 'user' as const, content: userQuery }];
 
-  const responses = await queryModelsParallel(COUNCIL_MODELS, messages);
+  const responses = await queryModelsParallel(models, messages);
 
   const stage1Results: Stage1Result[] = [];
   for (const [model, response] of responses) {
@@ -32,8 +73,12 @@ export async function stage1CollectResponses(
 
 export async function stage2CollectRankings(
   userQuery: string,
-  stage1Results: Stage1Result[]
+  stage1Results: Stage1Result[],
+  councilModels?: string[]
 ): Promise<{ rankings: Stage2Result[]; labelToModel: Record<string, string> }> {
+  // Get models from parameter or config
+  const models = councilModels || (await getCouncilConfig()).councilModels;
+
   // Create anonymized labels (Response A, B, C, ...)
   const labels = stage1Results.map((_, i) => String.fromCharCode(65 + i));
 
@@ -81,7 +126,7 @@ Now provide your evaluation and ranking:`;
 
   const messages = [{ role: 'user' as const, content: rankingPrompt }];
 
-  const responses = await queryModelsParallel(COUNCIL_MODELS, messages);
+  const responses = await queryModelsParallel(models, messages);
 
   const stage2Results: Stage2Result[] = [];
   for (const [model, response] of responses) {
@@ -102,8 +147,12 @@ Now provide your evaluation and ranking:`;
 export async function stage3SynthesizeFinal(
   userQuery: string,
   stage1Results: Stage1Result[],
-  stage2Results: Stage2Result[]
+  stage2Results: Stage2Result[],
+  chairmanModel?: string
 ): Promise<Stage3Result> {
+  // Get chairman model from parameter or config
+  const chairman = chairmanModel || (await getCouncilConfig()).chairmanModel;
+
   const stage1Text = stage1Results
     .map((result) => `Model: ${result.model}\nResponse: ${result.response}`)
     .join('\n\n');
@@ -131,17 +180,17 @@ Provide a clear, well-reasoned final answer that represents the council's collec
 
   const messages = [{ role: 'user' as const, content: chairmanPrompt }];
 
-  const response = await queryModel(CHAIRMAN_MODEL, messages);
+  const response = await queryModel(chairman, messages);
 
   if (response === null) {
     return {
-      model: CHAIRMAN_MODEL,
+      model: chairman,
       response: 'Error: Unable to generate final synthesis.',
     };
   }
 
   return {
-    model: CHAIRMAN_MODEL,
+    model: chairman,
     response: response.content,
   };
 }

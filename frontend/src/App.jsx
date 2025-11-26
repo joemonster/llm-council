@@ -1,30 +1,39 @@
 import { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, useParams, useNavigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import LoginPage from './components/LoginPage';
+import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import ChatInterface from './components/ChatInterface';
+import SettingsModal from './components/SettingsModal';
 import { api } from './api';
 import './App.css';
 
-function App() {
+function MainApp() {
+  const { conversationId } = useParams();
+  const navigate = useNavigate();
   const [conversations, setConversations] = useState([]);
-  const [currentConversationId, setCurrentConversationId] = useState(null);
   const [currentConversation, setCurrentConversation] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingConversations, setIsLoadingConversations] = useState(true);
   const [isLoadingConversation, setIsLoadingConversation] = useState(false);
   const [isCreatingConversation, setIsCreatingConversation] = useState(false);
   const [messageStartTime, setMessageStartTime] = useState(null);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   // Load conversations on mount
   useEffect(() => {
     loadConversations();
   }, []);
 
-  // Load conversation details when selected
+  // Load conversation details when URL changes
   useEffect(() => {
-    if (currentConversationId) {
-      loadConversation(currentConversationId);
+    if (conversationId) {
+      loadConversation(conversationId);
+    } else {
+      setCurrentConversation(null);
     }
-  }, [currentConversationId]);
+  }, [conversationId]);
 
   const loadConversations = async () => {
     setIsLoadingConversations(true);
@@ -59,7 +68,7 @@ function App() {
         { id: newConv.id, title: newConv.title, created_at: newConv.created_at, message_count: 0 },
         ...conversations,
       ]);
-      setCurrentConversationId(newConv.id);
+      navigate(`/c/${newConv.id}`);
     } catch (error) {
       console.error('Failed to create conversation:', error);
     } finally {
@@ -68,11 +77,41 @@ function App() {
   };
 
   const handleSelectConversation = (id) => {
-    setCurrentConversationId(id);
+    navigate(`/c/${id}`);
+  };
+
+  const handleRenameConversation = (id, newTitle) => {
+    setConversations((prev) =>
+      prev.map((conv) =>
+        conv.id === id ? { ...conv, title: newTitle } : conv
+      )
+    );
+
+    // Update current conversation if it's the one being renamed
+    if (currentConversation?.id === id) {
+      setCurrentConversation((prev) => ({ ...prev, title: newTitle }));
+    }
+  };
+
+  const handleDeleteConversation = async (id) => {
+    try {
+      await api.deleteConversation(id);
+
+      // Remove from conversations list
+      setConversations(conversations.filter(conv => conv.id !== id));
+
+      // If this was the current conversation, navigate to home
+      if (conversationId === id) {
+        navigate('/');
+      }
+    } catch (error) {
+      console.error('Failed to delete conversation:', error);
+      alert('Nie udało się usunąć rozmowy. Spróbuj ponownie.');
+    }
   };
 
   const handleSendMessage = async (content) => {
-    if (!currentConversationId) return;
+    if (!conversationId) return;
 
     setIsLoading(true);
     const startTime = Date.now();
@@ -109,7 +148,7 @@ function App() {
 
       // Stage 1: Collect responses
       console.log('Starting Stage 1...');
-      const stage1Result = await api.runStage1(currentConversationId, content);
+      const stage1Result = await api.runStage1(conversationId, content);
 
       const stage2StartTime = Date.now();
       setCurrentConversation((prev) => {
@@ -125,7 +164,7 @@ function App() {
       // Stage 2: Collect rankings
       console.log('Starting Stage 2...');
       const stage2Result = await api.runStage2(
-        currentConversationId,
+        conversationId,
         content,
         stage1Result.stage1
       );
@@ -145,7 +184,7 @@ function App() {
       // Stage 3: Chairman synthesis
       console.log('Starting Stage 3...');
       const stage3Result = await api.runStage3(
-        currentConversationId,
+        conversationId,
         content,
         stage1Result.stage1,
         stage2Result.stage2,
@@ -165,7 +204,7 @@ function App() {
       if (stage3Result.title) {
         setConversations((prev) =>
           prev.map((conv) =>
-            conv.id === currentConversationId
+            conv.id === conversationId
               ? { ...conv, title: stage3Result.title }
               : conv
           )
@@ -190,23 +229,63 @@ function App() {
   };
 
   return (
-    <div className="app">
-      <Sidebar
-        conversations={conversations}
-        currentConversationId={currentConversationId}
-        onSelectConversation={handleSelectConversation}
-        onNewConversation={handleNewConversation}
-        isLoading={isLoadingConversations}
-        isCreating={isCreatingConversation}
-      />
-      <ChatInterface
-        conversation={currentConversation}
-        onSendMessage={handleSendMessage}
-        isLoading={isLoading}
-        isLoadingConversation={isLoadingConversation}
-        messageStartTime={messageStartTime}
-      />
+    <div className="app-container">
+      <Header onOpenSettings={() => setShowSettingsModal(true)} />
+      <div className="app-main">
+        <Sidebar
+          conversations={conversations}
+          currentConversationId={conversationId}
+          onSelectConversation={handleSelectConversation}
+          onNewConversation={handleNewConversation}
+          isLoading={isLoadingConversations}
+          isCreating={isCreatingConversation}
+        />
+        <ChatInterface
+          conversation={currentConversation}
+          onSendMessage={handleSendMessage}
+          onRenameConversation={handleRenameConversation}
+          onDeleteConversation={handleDeleteConversation}
+          isLoading={isLoading}
+          isLoadingConversation={isLoadingConversation}
+          messageStartTime={messageStartTime}
+        />
+      </div>
+      {showSettingsModal && (
+        <SettingsModal onClose={() => setShowSettingsModal(false)} />
+      )}
     </div>
+  );
+}
+
+function AppContent() {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="app-loading">
+        <div className="loading-spinner" />
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <LoginPage />;
+  }
+
+  return <MainApp />;
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<AppContent />} />
+          <Route path="/c/:conversationId" element={<AppContent />} />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 

@@ -10,3 +10,4 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export const functionsUrl = `${supabaseUrl}/functions/v1`;
+export { supabaseAnonKey };

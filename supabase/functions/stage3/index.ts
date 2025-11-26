@@ -2,6 +2,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
+import { requireAuth } from '../_shared/auth.ts';
 import {
   stage3SynthesizeFinal,
   generateConversationTitle,
@@ -11,6 +12,12 @@ import type { Stage1Result, Stage2Result, CouncilMetadata } from '../_shared/typ
 Deno.serve(async (req) => {
   const corsResponse = handleCors(req);
   if (corsResponse) return corsResponse;
+
+  // Require authentication
+  const authResult = requireAuth(req);
+  if (authResult instanceof Response) {
+    return authResult;
+  }
 
   if (req.method !== 'POST') {
     return errorResponse('Method not allowed', 405);

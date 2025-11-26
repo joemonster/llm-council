@@ -2,10 +2,18 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
+import { requireAuth } from '../_shared/auth.ts';
 
 Deno.serve(async (req) => {
   const corsResponse = handleCors(req);
   if (corsResponse) return corsResponse;
+
+  // Require authentication
+  const authResult = requireAuth(req);
+  if (authResult instanceof Response) {
+    return authResult;
+  }
+  const { userId } = authResult;
 
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL')!,
@@ -79,6 +87,27 @@ Deno.serve(async (req) => {
       if (msgError) throw msgError;
 
       return jsonResponse({ ...conversation, messages: messages || [] });
+    }
+
+    // PATCH /conversations/{id} - Update conversation title
+    if (req.method === 'PATCH' && conversationId) {
+      const body = await req.json();
+      const { title } = body;
+
+      if (!title || typeof title !== 'string') {
+        return errorResponse('Title is required', 400);
+      }
+
+      const { data, error } = await supabase
+        .from('conversations')
+        .update({ title: title.trim() })
+        .eq('id', conversationId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return jsonResponse(data);
     }
 
     // DELETE /conversations/{id} - Delete conversation

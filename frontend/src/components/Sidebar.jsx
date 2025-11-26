@@ -13,7 +13,7 @@ export default function Sidebar({
   return (
     <div className="sidebar">
       <div className="sidebar-header">
-        <h1>LLM Council</h1>
+        <h1>Rada LLM</h1>
         <button
           className="new-conversation-btn"
           onClick={onNewConversation}
@@ -22,7 +22,7 @@ export default function Sidebar({
           {isCreating ? (
             <LoadingSpinner size="small" />
           ) : (
-            '+ New Conversation'
+            '+ Nowa rozmowa'
           )}
         </button>
       </div>
@@ -31,7 +31,7 @@ export default function Sidebar({
         {isLoading ? (
           <SkeletonLoader type="conversation-list" count={5} />
         ) : conversations.length === 0 ? (
-          <div className="no-conversations">No conversations yet</div>
+          <div className="no-conversations">Brak rozmów</div>
         ) : (
           conversations.map((conv) => (
             <div
@@ -41,11 +41,13 @@ export default function Sidebar({
               }`}
               onClick={() => onSelectConversation(conv.id)}
             >
-              <div className="conversation-title">
-                {conv.title || 'New Conversation'}
-              </div>
-              <div className="conversation-meta">
-                {conv.message_count} messages
+              <div className="conversation-content">
+                <div className="conversation-title">
+                  {conv.title || 'Nowa rozmowa'}
+                </div>
+                <div className="conversation-meta">
+                  {conv.message_count} {conv.message_count === 1 ? 'wiadomość' : conv.message_count < 5 ? 'wiadomości' : 'wiadomości'}
+                </div>
               </div>
             </div>
           ))

@@ -3,13 +3,17 @@
  * Uses Supabase Edge Functions with sequential stage calls.
  */
 
-import { supabase, functionsUrl } from './supabase';
+import { supabase, functionsUrl, supabaseAnonKey } from './supabase';
+import { getAuthHeaders } from './contexts/AuthContext';
 
 async function callFunction(functionName, body = {}) {
   const response = await fetch(`${functionsUrl}/${functionName}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${supabaseAnonKey}`,
+      'apikey': supabaseAnonKey,
+      ...getAuthHeaders(),
     },
     body: JSON.stringify(body),
   });
@@ -27,6 +31,9 @@ async function callFunctionGet(functionName) {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${supabaseAnonKey}`,
+      'apikey': supabaseAnonKey,
+      ...getAuthHeaders(),
     },
   });
 
@@ -39,6 +46,28 @@ async function callFunctionGet(functionName) {
 }
 
 export const api = {
+  /**
+   * Get council configuration (models list).
+   */
+  async getConfig() {
+    const response = await fetch(`${functionsUrl}/council-config`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${supabaseAnonKey}`,
+        'apikey': supabaseAnonKey,
+        ...getAuthHeaders(),
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+      throw new Error(error.error || 'Failed to get config');
+    }
+
+    return response.json();
+  },
+
   /**
    * List all conversations.
    */
@@ -61,12 +90,60 @@ export const api = {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${supabaseAnonKey}`,
+        'apikey': supabaseAnonKey,
+        ...getAuthHeaders(),
       },
     });
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ error: 'Unknown error' }));
       throw new Error(error.error || 'Failed to get conversation');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Update conversation title.
+   */
+  async updateConversationTitle(conversationId, title) {
+    const response = await fetch(`${functionsUrl}/conversations/${conversationId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${supabaseAnonKey}`,
+        'apikey': supabaseAnonKey,
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify({ title }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+      throw new Error(error.error || 'Failed to update conversation title');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Delete a conversation.
+   */
+  async deleteConversation(conversationId) {
+    const response = await fetch(`${functionsUrl}/conversations/${conversationId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${supabaseAnonKey}`,
+        'apikey': supabaseAnonKey,
+        ...getAuthHeaders(),
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+      throw new Error(error.error || 'Failed to delete conversation');
     }
 
     return response.json();
@@ -134,5 +211,46 @@ export const api = {
    */
   async sendMessageStream(conversationId, content, onEvent) {
     throw new Error('sendMessageStream is deprecated. Use runStage1/2/3 instead.');
+  },
+
+  // ==================== OpenRouter API ====================
+
+  /**
+   * Get available models from OpenRouter.
+   * @returns {Promise<{models: Array, free: Array, paid: Array}>}
+   */
+  async getOpenRouterModels() {
+    return callFunctionGet('openrouter-models');
+  },
+
+  /**
+   * Get OpenRouter credits balance.
+   * @returns {Promise<{total_credits: number, total_usage: number, remaining: number}>}
+   */
+  async getOpenRouterCredits() {
+    return callFunctionGet('openrouter-credits');
+  },
+
+  // ==================== Council Config API ====================
+
+  /**
+   * Get current council configuration.
+   * @returns {Promise<{council_models: string[], chairman_model: string}>}
+   */
+  async getCouncilConfig() {
+    return callFunctionGet('council-config');
+  },
+
+  /**
+   * Update council configuration.
+   * @param {string[]} councilModels - List of model IDs for the council
+   * @param {string} chairmanModel - Model ID for the chairman
+   * @returns {Promise<{success: boolean}>}
+   */
+  async updateCouncilConfig(councilModels, chairmanModel) {
+    return callFunction('council-config', {
+      council_models: councilModels,
+      chairman_model: chairmanModel,
+    });
   },
 };

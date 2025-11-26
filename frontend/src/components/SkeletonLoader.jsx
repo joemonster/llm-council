@@ -17,6 +17,90 @@ function SkeletonLoader({ type, count = 5 }) {
   if (type === 'messages') {
     return (
       <div className="skeleton-messages">
+        {/* Message group 1 */}
+        <div className="skeleton-message skeleton-user">
+          <div className="skeleton-line skeleton-text-medium"></div>
+        </div>
+        <div className="skeleton-message skeleton-assistant">
+          <div className="skeleton-line skeleton-text-long"></div>
+          <div className="skeleton-line skeleton-text-long"></div>
+          <div className="skeleton-line skeleton-text-medium"></div>
+          <div className="skeleton-line skeleton-text-long"></div>
+          <div className="skeleton-line skeleton-text-short"></div>
+        </div>
+
+        {/* Message group 2 */}
+        <div className="skeleton-message skeleton-user">
+          <div className="skeleton-line skeleton-text-short"></div>
+        </div>
+        <div className="skeleton-message skeleton-assistant">
+          <div className="skeleton-line skeleton-text-long"></div>
+          <div className="skeleton-line skeleton-text-medium"></div>
+          <div className="skeleton-line skeleton-text-long"></div>
+          <div className="skeleton-line skeleton-text-long"></div>
+          <div className="skeleton-line skeleton-text-medium"></div>
+        </div>
+
+        {/* Message group 3 */}
+        <div className="skeleton-message skeleton-user">
+          <div className="skeleton-line skeleton-text-long"></div>
+          <div className="skeleton-line skeleton-text-short"></div>
+        </div>
+        <div className="skeleton-message skeleton-assistant">
+          <div className="skeleton-line skeleton-text-long"></div>
+          <div className="skeleton-line skeleton-text-long"></div>
+          <div className="skeleton-line skeleton-text-medium"></div>
+          <div className="skeleton-line skeleton-text-long"></div>
+          <div className="skeleton-line skeleton-text-short"></div>
+          <div className="skeleton-line skeleton-text-long"></div>
+        </div>
+
+        {/* Message group 4 */}
+        <div className="skeleton-message skeleton-user">
+          <div className="skeleton-line skeleton-text-medium"></div>
+        </div>
+        <div className="skeleton-message skeleton-assistant">
+          <div className="skeleton-line skeleton-text-long"></div>
+          <div className="skeleton-line skeleton-text-medium"></div>
+          <div className="skeleton-line skeleton-text-long"></div>
+          <div className="skeleton-line skeleton-text-long"></div>
+        </div>
+
+        {/* Message group 5 */}
+        <div className="skeleton-message skeleton-user">
+          <div className="skeleton-line skeleton-text-short"></div>
+        </div>
+        <div className="skeleton-message skeleton-assistant">
+          <div className="skeleton-line skeleton-text-long"></div>
+          <div className="skeleton-line skeleton-text-long"></div>
+          <div className="skeleton-line skeleton-text-medium"></div>
+        </div>
+
+        {/* Message group 6 */}
+        <div className="skeleton-message skeleton-user">
+          <div className="skeleton-line skeleton-text-medium"></div>
+          <div className="skeleton-line skeleton-text-short"></div>
+        </div>
+        <div className="skeleton-message skeleton-assistant">
+          <div className="skeleton-line skeleton-text-long"></div>
+          <div className="skeleton-line skeleton-text-medium"></div>
+          <div className="skeleton-line skeleton-text-long"></div>
+          <div className="skeleton-line skeleton-text-long"></div>
+          <div className="skeleton-line skeleton-text-short"></div>
+        </div>
+
+        {/* Message group 7 */}
+        <div className="skeleton-message skeleton-user">
+          <div className="skeleton-line skeleton-text-long"></div>
+        </div>
+        <div className="skeleton-message skeleton-assistant">
+          <div className="skeleton-line skeleton-text-long"></div>
+          <div className="skeleton-line skeleton-text-long"></div>
+          <div className="skeleton-line skeleton-text-medium"></div>
+          <div className="skeleton-line skeleton-text-long"></div>
+        </div>
+
+        {/* Message group 8 */}
         <div className="skeleton-message skeleton-user">
           <div className="skeleton-line skeleton-text-short"></div>
         </div>

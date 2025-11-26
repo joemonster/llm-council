@@ -1,6 +1,7 @@
 // Stage 2: Collect rankings from all council models (anonymized peer review)
 
 import { handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
+import { requireAuth } from '../_shared/auth.ts';
 import {
   stage2CollectRankings,
   calculateAggregateRankings,
@@ -10,6 +11,12 @@ import type { Stage1Result } from '../_shared/types.ts';
 Deno.serve(async (req) => {
   const corsResponse = handleCors(req);
   if (corsResponse) return corsResponse;
+
+  // Require authentication
+  const authResult = requireAuth(req);
+  if (authResult instanceof Response) {
+    return authResult;
+  }
 
   if (req.method !== 'POST') {
     return errorResponse('Method not allowed', 405);
