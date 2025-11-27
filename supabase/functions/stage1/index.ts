@@ -53,16 +53,17 @@ Deno.serve(async (req) => {
 
     // Run Stage 1: Collect responses from all council models
     console.log('Starting Stage 1 for conversation:', conversation_id);
-    const stage1Results = await stage1CollectResponses(content);
+    const { results: stage1Results, usage: stage1Usage } = await stage1CollectResponses(content);
 
     if (stage1Results.length === 0) {
       return errorResponse('All models failed to respond', 500);
     }
 
-    console.log(`Stage 1 complete: ${stage1Results.length} responses`);
+    console.log(`Stage 1 complete: ${stage1Results.length} responses, cost: $${stage1Usage.total_cost.toFixed(4)}`);
 
     return jsonResponse({
       stage1: stage1Results,
+      usage: stage1Usage,
     });
   } catch (error) {
     console.error('Stage 1 error:', error);

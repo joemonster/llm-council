@@ -7,7 +7,13 @@ import {
   stage3SynthesizeFinal,
   generateConversationTitle,
 } from '../_shared/council.ts';
-import type { Stage1Result, Stage2Result, CouncilMetadata } from '../_shared/types.ts';
+import type {
+  Stage1Result,
+  Stage2Result,
+  CouncilMetadata,
+  StageUsage,
+  UsageStatistics,
+} from '../_shared/types.ts';
 
 Deno.serve(async (req) => {
   const corsResponse = handleCors(req);
@@ -24,7 +30,15 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { conversation_id, content, stage1, stage2, metadata } = await req.json();
+    const {
+      conversation_id,
+      content,
+      stage1,
+      stage2,
+      metadata,
+      stage1_usage,
+      stage2_usage,
+    } = await req.json();
 
     if (!conversation_id || !content || !stage1 || !stage2 || !metadata) {
       return errorResponse(
@@ -36,6 +50,8 @@ Deno.serve(async (req) => {
     const stage1Results: Stage1Result[] = stage1;
     const stage2Results: Stage2Result[] = stage2;
     const councilMetadata: CouncilMetadata = metadata;
+    const stage1Usage: StageUsage | undefined = stage1_usage;
+    const stage2Usage: StageUsage | undefined = stage2_usage;
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
@@ -52,10 +68,51 @@ Deno.serve(async (req) => {
 
     // Run Stage 3: Chairman synthesis
     console.log('Starting Stage 3 for conversation:', conversation_id);
-    const stage3Result = await stage3SynthesizeFinal(
+    const { result: stage3Result, usage: stage3Usage } = await stage3SynthesizeFinal(
       content,
       stage1Results,
       stage2Results
+    );
+
+    // Calculate grand total usage statistics
+    const usageStatistics: UsageStatistics = {
+      stage1: stage1Usage || {
+        total_prompt_tokens: 0,
+        total_completion_tokens: 0,
+        total_tokens: 0,
+        total_cost: 0,
+        models: [],
+      },
+      stage2: stage2Usage || {
+        total_prompt_tokens: 0,
+        total_completion_tokens: 0,
+        total_tokens: 0,
+        total_cost: 0,
+        models: [],
+      },
+      stage3: stage3Usage,
+      grand_total: {
+        total_prompt_tokens:
+          (stage1Usage?.total_prompt_tokens || 0) +
+          (stage2Usage?.total_prompt_tokens || 0) +
+          stage3Usage.total_prompt_tokens,
+        total_completion_tokens:
+          (stage1Usage?.total_completion_tokens || 0) +
+          (stage2Usage?.total_completion_tokens || 0) +
+          stage3Usage.total_completion_tokens,
+        total_tokens:
+          (stage1Usage?.total_tokens || 0) +
+          (stage2Usage?.total_tokens || 0) +
+          stage3Usage.total_tokens,
+        total_cost:
+          (stage1Usage?.total_cost || 0) +
+          (stage2Usage?.total_cost || 0) +
+          stage3Usage.total_cost,
+      },
+    };
+
+    console.log(
+      `Stage 3 complete, cost: $${stage3Usage.total_cost.toFixed(4)}, total cost: $${usageStatistics.grand_total.total_cost.toFixed(4)}`
     );
 
     // Generate title if first message
@@ -77,16 +134,20 @@ Deno.serve(async (req) => {
       stage1: stage1Results,
       stage2: stage2Results,
       stage3: stage3Result,
-      metadata: councilMetadata,
+      metadata: {
+        ...councilMetadata,
+        usage: usageStatistics,
+      },
     });
 
     if (msgError) throw msgError;
 
-    console.log('Stage 3 complete, message saved');
+    console.log('Message saved with usage statistics');
 
     return jsonResponse({
       stage3: stage3Result,
       title: newTitle,
+      usage: usageStatistics,
     });
   } catch (error) {
     console.error('Stage 3 error:', error);

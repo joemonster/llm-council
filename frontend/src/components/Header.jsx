@@ -4,12 +4,6 @@ import './Header.css';
 function Header({ onOpenSettings }) {
   const { user, logout } = useAuth();
 
-  const handleForceRelogin = () => {
-    localStorage.clear();
-    sessionStorage.clear();
-    window.location.reload();
-  };
-
   return (
     <header className="app-header">
       <div className="header-left">
@@ -18,15 +12,6 @@ function Header({ onOpenSettings }) {
 
       <div className="header-right">
         <span className="header-username">{user?.display_name || user?.username}</span>
-
-        <button
-          className="header-button"
-          onClick={handleForceRelogin}
-          title="Force Re-login (Debug)"
-          style={{ background: '#e74c3c', color: 'white', marginRight: '8px' }}
-        >
-          🔄
-        </button>
 
         <button
           className="header-button settings-button"

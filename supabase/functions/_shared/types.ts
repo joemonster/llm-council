@@ -8,6 +8,58 @@ export interface Message {
 export interface ModelResponse {
   content: string;
   reasoning_details?: string;
+  generation_id?: string;
+  usage?: UsageData;
+}
+
+// Usage data from chat completion response
+export interface UsageData {
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
+}
+
+// Generation details from /generation endpoint
+export interface GenerationInfo {
+  id: string;
+  model: string;
+  native_tokens_prompt: number;
+  native_tokens_completion: number;
+  total_cost: number;
+  created_at: string;
+  generation_time: number;
+}
+
+// Per-model usage statistics
+export interface ModelUsage {
+  model: string;
+  generation_id: string;
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
+  cost: number;
+}
+
+// Stage-level aggregated usage
+export interface StageUsage {
+  total_prompt_tokens: number;
+  total_completion_tokens: number;
+  total_tokens: number;
+  total_cost: number;
+  models: ModelUsage[];
+}
+
+// Complete usage statistics for all stages
+export interface UsageStatistics {
+  stage1: StageUsage;
+  stage2: StageUsage;
+  stage3: StageUsage;
+  grand_total: {
+    total_prompt_tokens: number;
+    total_completion_tokens: number;
+    total_tokens: number;
+    total_cost: number;
+  };
 }
 
 export interface Stage1Result {

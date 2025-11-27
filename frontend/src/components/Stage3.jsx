@@ -1,7 +1,8 @@
 import ReactMarkdown from 'react-markdown';
+import UsageStats from './UsageStats';
 import './Stage3.css';
 
-export default function Stage3({ finalResponse }) {
+export default function Stage3({ finalResponse, usage }) {
   if (!finalResponse) {
     return null;
   }
@@ -17,6 +18,7 @@ export default function Stage3({ finalResponse }) {
           <ReactMarkdown>{finalResponse.response}</ReactMarkdown>
         </div>
       </div>
+      {usage && <UsageStats usage={usage} />}
     </div>
   );
 }

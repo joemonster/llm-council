@@ -159,6 +159,7 @@ function MainApp() {
         const messages = [...prev.messages];
         const lastMsg = messages[messages.length - 1];
         lastMsg.stage1 = stage1Result.stage1;
+        lastMsg.stage1Usage = stage1Result.usage;
         lastMsg.loading.stage1 = false;
         lastMsg.loading.stage2 = true;
         lastMsg.stageStartTime = stage2StartTime;
@@ -177,6 +178,7 @@ function MainApp() {
         const messages = [...prev.messages];
         const lastMsg = messages[messages.length - 1];
         lastMsg.stage2 = stage2Result.stage2;
+        lastMsg.stage2Usage = stage2Result.usage;
         lastMsg.metadata = stage2Result.metadata;
         lastMsg.loading.stage2 = false;
         lastMsg.loading.stage3 = true;
@@ -190,13 +192,16 @@ function MainApp() {
         content,
         stage1Result.stage1,
         stage2Result.stage2,
-        stage2Result.metadata
+        stage2Result.metadata,
+        stage1Result.usage,
+        stage2Result.usage
       );
 
       setCurrentConversation((prev) => {
         const messages = [...prev.messages];
         const lastMsg = messages[messages.length - 1];
         lastMsg.stage3 = stage3Result.stage3;
+        lastMsg.usage = stage3Result.usage;
         lastMsg.loading.stage3 = false;
         lastMsg.stageStartTime = null;
         return { ...prev, messages };

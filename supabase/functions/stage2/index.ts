@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
 
     // Run Stage 2: Collect rankings
     console.log('Starting Stage 2 for conversation:', conversation_id);
-    const { rankings: stage2Results, labelToModel } = await stage2CollectRankings(
+    const { rankings: stage2Results, labelToModel, usage: stage2Usage } = await stage2CollectRankings(
       content,
       stage1Results
     );
@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
     // Calculate aggregate rankings
     const aggregateRankings = calculateAggregateRankings(stage2Results, labelToModel);
 
-    console.log(`Stage 2 complete: ${stage2Results.length} rankings`);
+    console.log(`Stage 2 complete: ${stage2Results.length} rankings, cost: $${stage2Usage.total_cost.toFixed(4)}`);
 
     return jsonResponse({
       stage2: stage2Results,
@@ -53,6 +53,7 @@ Deno.serve(async (req) => {
         label_to_model: labelToModel,
         aggregate_rankings: aggregateRankings,
       },
+      usage: stage2Usage,
     });
   } catch (error) {
     console.error('Stage 2 error:', error);

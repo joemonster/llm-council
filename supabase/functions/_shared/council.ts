@@ -1,7 +1,7 @@
 // 3-stage LLM Council orchestration logic
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { queryModelsParallel, queryModel } from './openrouter.ts';
+import { queryModelsParallel, queryModel, batchGetGenerationDetails } from './openrouter.ts';
 import { COUNCIL_MODELS, CHAIRMAN_MODEL, TITLE_MODEL } from './config.ts';
 import type {
   Stage1Result,
@@ -9,6 +9,9 @@ import type {
   Stage3Result,
   AggregateRanking,
   CouncilMetadata,
+  ModelResponse,
+  StageUsage,
+  ModelUsage,
 } from './types.ts';
 
 // Get council configuration from database or fall back to hardcoded values
@@ -47,10 +50,75 @@ export async function getCouncilConfig(): Promise<{
   };
 }
 
+/**
+ * Calculate stage usage from model responses and fetch costs from OpenRouter.
+ */
+export async function calculateStageUsage(
+  modelResponses: Map<string, ModelResponse | null>
+): Promise<StageUsage> {
+  const models: ModelUsage[] = [];
+  let totalPromptTokens = 0;
+  let totalCompletionTokens = 0;
+  let totalTokens = 0;
+  let totalCost = 0;
+
+  // Collect generation IDs
+  const generationIds: string[] = [];
+  const modelToGenId = new Map<string, string>();
+
+  for (const [model, response] of modelResponses) {
+    if (response && response.generation_id) {
+      generationIds.push(response.generation_id);
+      modelToGenId.set(model, response.generation_id);
+    }
+  }
+
+  // Batch fetch generation details for costs
+  const generationDetails = await batchGetGenerationDetails(generationIds);
+
+  // Build per-model usage
+  for (const [model, response] of modelResponses) {
+    if (!response) continue;
+
+    const genId = modelToGenId.get(model);
+    const genInfo = genId ? generationDetails.get(genId) : null;
+
+    const usage = response.usage || {
+      prompt_tokens: 0,
+      completion_tokens: 0,
+      total_tokens: 0,
+    };
+
+    const cost = genInfo?.total_cost || 0;
+
+    models.push({
+      model,
+      generation_id: genId || '',
+      prompt_tokens: usage.prompt_tokens,
+      completion_tokens: usage.completion_tokens,
+      total_tokens: usage.total_tokens,
+      cost,
+    });
+
+    totalPromptTokens += usage.prompt_tokens;
+    totalCompletionTokens += usage.completion_tokens;
+    totalTokens += usage.total_tokens;
+    totalCost += cost;
+  }
+
+  return {
+    total_prompt_tokens: totalPromptTokens,
+    total_completion_tokens: totalCompletionTokens,
+    total_tokens: totalTokens,
+    total_cost: totalCost,
+    models,
+  };
+}
+
 export async function stage1CollectResponses(
   userQuery: string,
   councilModels?: string[]
-): Promise<Stage1Result[]> {
+): Promise<{ results: Stage1Result[]; usage: StageUsage }> {
   // Get models from parameter or config
   const models = councilModels || (await getCouncilConfig()).councilModels;
 
@@ -68,14 +136,16 @@ export async function stage1CollectResponses(
     }
   }
 
-  return stage1Results;
+  const usage = await calculateStageUsage(responses);
+
+  return { results: stage1Results, usage };
 }
 
 export async function stage2CollectRankings(
   userQuery: string,
   stage1Results: Stage1Result[],
   councilModels?: string[]
-): Promise<{ rankings: Stage2Result[]; labelToModel: Record<string, string> }> {
+): Promise<{ rankings: Stage2Result[]; labelToModel: Record<string, string>; usage: StageUsage }> {
   // Get models from parameter or config
   const models = councilModels || (await getCouncilConfig()).councilModels;
 
@@ -141,7 +211,9 @@ Now provide your evaluation and ranking:`;
     }
   }
 
-  return { rankings: stage2Results, labelToModel };
+  const usage = await calculateStageUsage(responses);
+
+  return { rankings: stage2Results, labelToModel, usage };
 }
 
 export async function stage3SynthesizeFinal(
@@ -149,7 +221,7 @@ export async function stage3SynthesizeFinal(
   stage1Results: Stage1Result[],
   stage2Results: Stage2Result[],
   chairmanModel?: string
-): Promise<Stage3Result> {
+): Promise<{ result: Stage3Result; usage: StageUsage }> {
   // Get chairman model from parameter or config
   const chairman = chairmanModel || (await getCouncilConfig()).chairmanModel;
 
@@ -184,14 +256,29 @@ Provide a clear, well-reasoned final answer that represents the council's collec
 
   if (response === null) {
     return {
-      model: chairman,
-      response: 'Error: Unable to generate final synthesis.',
+      result: {
+        model: chairman,
+        response: 'Error: Unable to generate final synthesis.',
+      },
+      usage: {
+        total_prompt_tokens: 0,
+        total_completion_tokens: 0,
+        total_tokens: 0,
+        total_cost: 0,
+        models: [],
+      },
     };
   }
 
+  const responseMap = new Map([[chairman, response]]);
+  const usage = await calculateStageUsage(responseMap);
+
   return {
-    model: chairman,
-    response: response.content,
+    result: {
+      model: chairman,
+      response: response.content,
+    },
+    usage,
   };
 }
 

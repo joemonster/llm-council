@@ -187,13 +187,15 @@ export const api = {
    * @param {Object} metadata - Metadata from Stage 2
    * @returns {Promise<{stage3: Object, title: string|null}>}
    */
-  async runStage3(conversationId, content, stage1, stage2, metadata) {
+  async runStage3(conversationId, content, stage1, stage2, metadata, stage1Usage, stage2Usage) {
     return callFunction('stage3', {
       conversation_id: conversationId,
       content,
       stage1,
       stage2,
       metadata,
+      stage1_usage: stage1Usage,
+      stage2_usage: stage2Usage,
     });
   },
 

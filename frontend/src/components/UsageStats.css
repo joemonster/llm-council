@@ -1,0 +1,186 @@
+.usage-stats {
+  margin-top: 24px;
+  padding: 16px;
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.usage-header {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #4a90e2;
+}
+
+/* Grand Total Section */
+.usage-grand-total {
+  background-color: #e8f4f8;
+  border: 2px solid #4a90e2;
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.usage-grand-total-header {
+  font-size: 15px;
+  font-weight: 600;
+  color: #2c5aa0;
+  margin-bottom: 12px;
+}
+
+.usage-grand-total-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.usage-total-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: white;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.usage-total-item.usage-total-cost {
+  background-color: #fff8e1;
+  border: 1px solid #ffd54f;
+}
+
+.usage-total-label {
+  font-weight: 500;
+  color: #555;
+}
+
+.usage-total-value {
+  font-weight: 600;
+  color: #333;
+  font-family: 'Courier New', monospace;
+}
+
+.usage-cost {
+  color: #f57c00;
+  font-weight: 700;
+}
+
+/* Stage Sections */
+.usage-stages {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.usage-stage {
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  background-color: white;
+  overflow: hidden;
+}
+
+.usage-stage-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background-color: #f5f5f5;
+  cursor: pointer;
+  user-select: none;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.usage-stage-summary:hover {
+  background-color: #eeeeee;
+}
+
+.usage-stage-name {
+  color: #333;
+  font-weight: 600;
+}
+
+.usage-stage-stats {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+}
+
+.usage-stat-item {
+  color: #666;
+  font-family: 'Courier New', monospace;
+}
+
+/* Model Details */
+.usage-models {
+  padding: 12px 16px;
+  background-color: #fafafa;
+  border-top: 1px solid #e0e0e0;
+}
+
+.usage-model {
+  padding: 12px;
+  margin-bottom: 8px;
+  background-color: white;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+}
+
+.usage-model:last-child {
+  margin-bottom: 0;
+}
+
+.usage-model-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4a90e2;
+  margin-bottom: 8px;
+  font-family: 'Courier New', monospace;
+}
+
+.usage-model-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.usage-model-stat {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  padding: 4px 8px;
+  background-color: #f9f9f9;
+  border-radius: 3px;
+}
+
+.usage-label {
+  color: #666;
+  font-weight: 500;
+}
+
+.usage-value {
+  color: #333;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .usage-grand-total-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .usage-model-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .usage-stage-summary {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
