@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import UserSettingsTab from './UserSettingsTab';
 import CouncilConfigTab from './CouncilConfigTab';
+import PromptsTab from './PromptsTab';
 import './SettingsModal.css';
 
 function SettingsModal({ onClose }) {
@@ -47,11 +48,18 @@ function SettingsModal({ onClose }) {
           >
             Panel Ekspertów
           </button>
+          <button
+            className={`modal-tab ${activeTab === 'prompts' ? 'active' : ''}`}
+            onClick={() => setActiveTab('prompts')}
+          >
+            Prompty
+          </button>
         </div>
 
         <div className="modal-content">
           {activeTab === 'user' && <UserSettingsTab />}
           {activeTab === 'council' && <CouncilConfigTab />}
+          {activeTab === 'prompts' && <PromptsTab />}
         </div>
       </div>
     </div>

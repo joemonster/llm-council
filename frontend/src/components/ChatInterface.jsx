@@ -172,7 +172,7 @@ export default function ChatInterface({
                       />
                     </div>
                   )}
-                  {msg.stage3 && <Stage3 finalResponse={msg.stage3} usage={msg.usage} />}
+                  {msg.stage3 && <Stage3 finalResponse={msg.stage3} usage={msg.usage || msg.metadata?.usage} />}
                 </div>
               )}
             </div>
