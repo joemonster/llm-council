@@ -26,7 +26,7 @@ export async function getCouncilConfig(): Promise<{
     );
 
     const { data: config, error } = await supabase
-      .from('council_configs')
+      .from('llmc_council_configs')
       .select('council_models, chairman_model')
       .eq('is_active', true)
       .order('created_at', { ascending: false })

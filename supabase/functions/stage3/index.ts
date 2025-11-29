@@ -53,6 +53,9 @@ Deno.serve(async (req) => {
     const stage1Usage: StageUsage | undefined = stage1_usage;
     const stage2Usage: StageUsage | undefined = stage2_usage;
 
+    console.log('Stage 3 received - stage1_usage:', stage1Usage ? 'YES (cost: $' + stage1Usage.total_cost + ')' : 'NO');
+    console.log('Stage 3 received - stage2_usage:', stage2Usage ? 'YES (cost: $' + stage2Usage.total_cost + ')' : 'NO');
+
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -60,7 +63,7 @@ Deno.serve(async (req) => {
 
     // Check if this is the first message (for title generation)
     const { count } = await supabase
-      .from('messages')
+      .from('llmc_messages')
       .select('*', { count: 'exact', head: true })
       .eq('conversation_id', conversation_id);
 
@@ -122,13 +125,13 @@ Deno.serve(async (req) => {
       newTitle = await generateConversationTitle(content);
 
       await supabase
-        .from('conversations')
+        .from('llmc_conversations')
         .update({ title: newTitle })
         .eq('id', conversation_id);
     }
 
     // Save the complete assistant message
-    const { error: msgError } = await supabase.from('messages').insert({
+    const { error: msgError } = await supabase.from('llmc_messages').insert({
       conversation_id,
       role: 'assistant',
       stage1: stage1Results,

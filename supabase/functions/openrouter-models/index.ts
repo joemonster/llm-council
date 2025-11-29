@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
   try {
     // Check if we have fresh cached data
     const { data: cachedModels, error: cacheError } = await supabase
-      .from('openrouter_models_cache')
+      .from('llmc_openrouter_models_cache')
       .select('*')
       .order('name');
 
@@ -104,7 +104,7 @@ Deno.serve(async (req) => {
 
     // Upsert to cache
     const { error: upsertError } = await supabase
-      .from('openrouter_models_cache')
+      .from('llmc_openrouter_models_cache')
       .upsert(
         processedModels.map((m) => ({
           ...m,

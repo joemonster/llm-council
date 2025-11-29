@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
     // GET /conversations - List all conversations
     if (req.method === 'GET' && !conversationId) {
       const { data: conversations, error } = await supabase
-        .from('conversations')
+        .from('llmc_conversations')
         .select('id, title, created_at, updated_at')
         .order('created_at', { ascending: false });
 
@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
       const withCounts = await Promise.all(
         (conversations || []).map(async (conv) => {
           const { count } = await supabase
-            .from('messages')
+            .from('llmc_messages')
             .select('*', { count: 'exact', head: true })
             .eq('conversation_id', conv.id);
 
@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
     // POST /conversations - Create new conversation
     if (req.method === 'POST' && !conversationId) {
       const { data, error } = await supabase
-        .from('conversations')
+        .from('llmc_conversations')
         .insert({})
         .select()
         .single();
@@ -66,7 +66,7 @@ Deno.serve(async (req) => {
     // GET /conversations/{id} - Get single conversation with messages
     if (req.method === 'GET' && conversationId) {
       const { data: conversation, error: convError } = await supabase
-        .from('conversations')
+        .from('llmc_conversations')
         .select('*')
         .eq('id', conversationId)
         .single();
@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
       }
 
       const { data: messages, error: msgError } = await supabase
-        .from('messages')
+        .from('llmc_messages')
         .select('*')
         .eq('conversation_id', conversationId)
         .order('created_at');
@@ -99,7 +99,7 @@ Deno.serve(async (req) => {
       }
 
       const { data, error } = await supabase
-        .from('conversations')
+        .from('llmc_conversations')
         .update({ title: title.trim() })
         .eq('id', conversationId)
         .select()
@@ -113,7 +113,7 @@ Deno.serve(async (req) => {
     // DELETE /conversations/{id} - Delete conversation
     if (req.method === 'DELETE' && conversationId) {
       const { error } = await supabase
-        .from('conversations')
+        .from('llmc_conversations')
         .delete()
         .eq('id', conversationId);
 

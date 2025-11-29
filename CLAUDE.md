@@ -88,14 +88,14 @@ The project has **two backend options**:
 
 ### Database (`supabase/migrations/`)
 
-PostgreSQL tables:
-- `conversations` - Conversation metadata (id, title, timestamps)
-- `messages` - User and assistant messages with stage data and metadata
-- `users` - User accounts (username, password_hash, display_name)
-- `council_configs` - Per-user council model configurations
-- `openrouter_models_cache` - Cached model list from OpenRouter API
+PostgreSQL tables (all prefixed with `llmc_`):
+- `llmc_conversations` - Conversation metadata (id, title, timestamps)
+- `llmc_messages` - User and assistant messages with stage data and metadata
+- `llmc_users` - User accounts (username, password_hash, display_name)
+- `llmc_council_configs` - Per-user council model configurations
+- `llmc_openrouter_models_cache` - Cached model list from OpenRouter API
 
-**Message metadata structure** (stored in `messages.metadata` JSONB):
+**Message metadata structure** (stored in `llmc_messages.metadata` JSONB):
 ```json
 {
   "label_to_model": {"Response A": "openai/gpt-5.1", ...},

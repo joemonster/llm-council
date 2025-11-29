@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
 
       // Find user (case insensitive)
       const { data: user, error } = await supabase
-        .from('users')
+        .from('llmc_users')
         .select('*')
         .ilike('username', username)
         .single();
@@ -84,7 +84,7 @@ Deno.serve(async (req) => {
 
       // Update last login
       await supabase
-        .from('users')
+        .from('llmc_users')
         .update({ last_login: new Date().toISOString() })
         .eq('id', user.id);
 
@@ -119,7 +119,7 @@ Deno.serve(async (req) => {
 
       // Get user from database
       const { data: user, error } = await supabase
-        .from('users')
+        .from('llmc_users')
         .select('id, username, display_name, created_at, last_login')
         .eq('id', decoded.userId)
         .single();

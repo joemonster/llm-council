@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
 
     // Verify conversation exists
     const { data: conversation, error: convError } = await supabase
-      .from('conversations')
+      .from('llmc_conversations')
       .select('id')
       .eq('id', conversation_id)
       .single();
@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
     }
 
     // Add user message to database
-    const { error: msgError } = await supabase.from('messages').insert({
+    const { error: msgError } = await supabase.from('llmc_messages').insert({
       conversation_id,
       role: 'user',
       content,
@@ -60,6 +60,7 @@ Deno.serve(async (req) => {
     }
 
     console.log(`Stage 1 complete: ${stage1Results.length} responses, cost: $${stage1Usage.total_cost.toFixed(4)}`);
+    console.log('Stage 1 usage details:', JSON.stringify(stage1Usage));
 
     return jsonResponse({
       stage1: stage1Results,

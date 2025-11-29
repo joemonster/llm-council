@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
       // Try to get user-specific config from database
       // For now, we use a default config (first active one or fallback to hardcoded)
       const { data: config, error } = await supabase
-        .from('council_configs')
+        .from('llmc_council_configs')
         .select('*')
         .eq('is_active', true)
         .order('created_at', { ascending: false })
@@ -67,13 +67,13 @@ Deno.serve(async (req) => {
 
       // Deactivate any existing active configs
       await supabase
-        .from('council_configs')
+        .from('llmc_council_configs')
         .update({ is_active: false })
         .eq('is_active', true);
 
       // Insert new config
       const { data: newConfig, error } = await supabase
-        .from('council_configs')
+        .from('llmc_council_configs')
         .insert({
           council_models,
           chairman_model,
