@@ -74,7 +74,7 @@ if (Test-Path $envFile) {
 Write-Host ""
 Write-Host "Step 4: Deploying Edge Functions..." -ForegroundColor Green
 
-$functions = @("health", "conversations", "stage1", "stage2", "stage3")
+$functions = @("health", "auth-login", "conversations", "council-config", "openrouter-credits", "openrouter-models", "stage1", "stage2", "stage3")
 foreach ($func in $functions) {
     Write-Host "  Deploying $func..." -ForegroundColor Gray
     supabase functions deploy $func --no-verify-jwt

@@ -39,6 +39,8 @@ IMPORTANT: Your final ranking MUST be formatted EXACTLY as follows:
 - Each line should be: number, period, space, then ONLY the response label (e.g., "1. Response A")
 - Do not add any other text or explanations in the ranking section
 
+IMPORTANT: Write your evaluation in the SAME LANGUAGE as the original question. If the question is in Polish, respond in Polish. If in English, respond in English.
+
 Example of the correct format for your ENTIRE response:
 
 Response A provides good detail on X but misses Y...
