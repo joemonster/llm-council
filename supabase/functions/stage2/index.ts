@@ -46,6 +46,7 @@ Deno.serve(async (req) => {
     const aggregateRankings = calculateAggregateRankings(stage2Results, labelToModel);
 
     console.log(`Stage 2 complete: ${stage2Results.length} rankings, cost: $${stage2Usage.total_cost.toFixed(4)}`);
+    console.log('Stage 2 usage details:', JSON.stringify(stage2Usage));
 
     return jsonResponse({
       stage2: stage2Results,

@@ -153,6 +153,7 @@ function MainApp() {
 
       // Stage 1: Collect responses
       const stage1Result = await api.runStage1(conversationId, content);
+      console.log('Stage 1 result:', stage1Result);
 
       const stage2StartTime = Date.now();
       setCurrentConversation((prev) => {
@@ -172,6 +173,7 @@ function MainApp() {
         content,
         stage1Result.stage1
       );
+      console.log('Stage 2 result:', stage2Result);
 
       const stage3StartTime = Date.now();
       setCurrentConversation((prev) => {
@@ -196,6 +198,8 @@ function MainApp() {
         stage1Result.usage,
         stage2Result.usage
       );
+      console.log('Stage 3 result:', stage3Result);
+      console.log('Usage statistics:', stage3Result.usage);
 
       setCurrentConversation((prev) => {
         const messages = [...prev.messages];
