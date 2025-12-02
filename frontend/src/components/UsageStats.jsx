@@ -36,19 +36,19 @@ function UsageStats({ usage }) {
               <div className="usage-model-name">{model.model}</div>
               <div className="usage-model-stats">
                 <div className="usage-model-stat">
-                  <span className="usage-label">Prompt:</span>
+                  <span className="usage-label">Wejściowe:</span>
                   <span className="usage-value">{formatNumber(model.prompt_tokens)}</span>
                 </div>
                 <div className="usage-model-stat">
-                  <span className="usage-label">Completion:</span>
+                  <span className="usage-label">Wyjściowe:</span>
                   <span className="usage-value">{formatNumber(model.completion_tokens)}</span>
                 </div>
                 <div className="usage-model-stat">
-                  <span className="usage-label">Total:</span>
+                  <span className="usage-label">Razem:</span>
                   <span className="usage-value">{formatNumber(model.total_tokens)}</span>
                 </div>
                 <div className="usage-model-stat">
-                  <span className="usage-label">Cost:</span>
+                  <span className="usage-label">Koszt:</span>
                   <span className="usage-value usage-cost">{formatCost(model.cost)}</span>
                 </div>
               </div>
@@ -61,32 +61,32 @@ function UsageStats({ usage }) {
 
   return (
     <div className="usage-stats">
-      <div className="usage-header">Usage Statistics</div>
+      <div className="usage-header">Statystyki zużycia</div>
 
       {/* Grand Total */}
       <div className="usage-grand-total">
-        <div className="usage-grand-total-header">Grand Total</div>
+        <div className="usage-grand-total-header">Podsumowanie</div>
         <div className="usage-grand-total-stats">
           <div className="usage-total-item">
-            <span className="usage-total-label">Prompt Tokens:</span>
+            <span className="usage-total-label">Tokeny wejściowe:</span>
             <span className="usage-total-value">
               {formatNumber(usage.grand_total.total_prompt_tokens)}
             </span>
           </div>
           <div className="usage-total-item">
-            <span className="usage-total-label">Completion Tokens:</span>
+            <span className="usage-total-label">Tokeny wyjściowe:</span>
             <span className="usage-total-value">
               {formatNumber(usage.grand_total.total_completion_tokens)}
             </span>
           </div>
           <div className="usage-total-item">
-            <span className="usage-total-label">Total Tokens:</span>
+            <span className="usage-total-label">Łącznie tokenów:</span>
             <span className="usage-total-value">
               {formatNumber(usage.grand_total.total_tokens)}
             </span>
           </div>
           <div className="usage-total-item usage-total-cost">
-            <span className="usage-total-label">Total Cost:</span>
+            <span className="usage-total-label">Łączny koszt:</span>
             <span className="usage-total-value usage-cost">
               {formatCost(usage.grand_total.total_cost)}
             </span>
@@ -96,9 +96,9 @@ function UsageStats({ usage }) {
 
       {/* Stage Breakdowns */}
       <div className="usage-stages">
-        {renderStageUsage(usage.stage1, 'Stage 1: Individual Responses')}
-        {renderStageUsage(usage.stage2, 'Stage 2: Peer Rankings')}
-        {renderStageUsage(usage.stage3, 'Stage 3: Chairman Synthesis')}
+        {renderStageUsage(usage.stage1, 'Etap 1: Indywidualne odpowiedzi')}
+        {renderStageUsage(usage.stage2, 'Etap 2: Wzajemne oceny')}
+        {renderStageUsage(usage.stage3, 'Etap 3: Synteza przewodniczącego')}
       </div>
     </div>
   );

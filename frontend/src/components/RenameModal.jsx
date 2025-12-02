@@ -19,7 +19,7 @@ export default function RenameModal({ isOpen, currentTitle, onConfirm, onCancel 
 
   return (
     <div className="modal-overlay" onClick={onCancel}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <div className="confirm-modal-content" onClick={(e) => e.stopPropagation()}>
         <h3 className="modal-title">Zmień nazwę rozmowy</h3>
         <form onSubmit={handleSubmit}>
           <input
